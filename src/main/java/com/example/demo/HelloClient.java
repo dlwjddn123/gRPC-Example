@@ -5,9 +5,14 @@ import com.example.HelloResponse;
 import com.example.HelloServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+@RestController
 public class HelloClient {
-    public static void main(String[] args) throws Exception {
+
+    @GetMapping("/test")
+    public void test() {
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
                 .build();
