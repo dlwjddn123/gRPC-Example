@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.coin;
 
 import com.example.HelloRequest;
 import com.example.HelloResponse;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloClient {
 
-    @GetMapping("/test")
+    @GetMapping("/z")
     public void test() {
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
@@ -20,7 +20,7 @@ public class HelloClient {
         HelloServiceGrpc.HelloServiceBlockingStub stub = HelloServiceGrpc.newBlockingStub(channel);
 
         HelloResponse response = stub.sayHello(HelloRequest.newBuilder()
-                .setName("world")
+                .setName("KRW-IOTA")
                 .build());
 
         System.out.println(response.getMessage());
