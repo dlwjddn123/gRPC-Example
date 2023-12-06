@@ -32,7 +32,7 @@ public class CoinService {
     private final CoinRepository coinRepository;
 
     @Transactional
-    public void join(String loginId, String nickname, String accountName, String password) {
+    public String join(String loginId, String nickname, String accountName, String password) {
         Member member = Member.builder()
                 .loginId(loginId)
                 .nickname(nickname)
@@ -41,10 +41,11 @@ public class CoinService {
                 .build();
 
         memberRepository.save(member);
+        return "회원 가입이 완료되었습니다.\n";
     }
 
     @Transactional
-    public void addWatchedCoin(String coinNames) {
+    public String addWatchedCoin(String coinNames) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
                     () -> new IllegalArgumentException("로그인이 필요합니다."));
@@ -53,8 +54,9 @@ public class CoinService {
                         () -> new IllegalArgumentException("존재하지 않는 코인입니다."));
                 watchedCoinRepository.save(new WatchedCoin(coin.getCode(), coin.getName(), member));
             }
+            return coinNames + "이/가 관심 목록에 추가되었습니다.";
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            return e.getMessage();
         }
     }
 
@@ -84,10 +86,11 @@ public class CoinService {
         resultBuilder.append("-----------------------------------\n\n");
 //        System.out.println("-----------------------------------\n");
         channel.shutdown();
+        System.out.println(resultBuilder.toString());
         return resultBuilder.toString();
     }
 
-    public void getWatchedCoinsPrice() {
+    public String getWatchedCoinsPrice() {
         Member member;
         try {
             member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
@@ -106,20 +109,22 @@ public class CoinService {
                     .setNames(names.toString())
                     .build());
 
-            System.out.println("▶▶▶▶▶▶▶▶▶▶ 관심 종목 현재가 ◀◀◀◀◀◀◀◀◀◀ \n");
+            StringBuilder resultBuilder = new StringBuilder();
+            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 관심 종목 현재가 ◀◀◀◀◀◀◀◀◀◀ \n\n");
             List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").split(", "));
             for (String coinPrice : coinPrices) {
-                System.out.println(coinPrice);
+                resultBuilder.append(coinPrice).append("\n");
             }
-            System.out.println("-----------------------------------\n");
+            resultBuilder.append("-----------------------------------\n");
             channel.shutdown();
+            return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage() + "\n");
+            return e.getMessage() + "\n";
         }
     }
 
     @Transactional
-    public void deleteWatchedCoin(String coinNames) {
+    public String deleteWatchedCoin(String coinNames) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
                     () -> new IllegalArgumentException("로그인이 필요합니다."));
@@ -128,8 +133,9 @@ public class CoinService {
                         () -> new IllegalArgumentException("관심 종목에 없는 코인입니다."));
                 watchedCoinRepository.delete(watchedCoin);
             }
+            return coinNames + "이/가 관심 목록에서 삭제되었습니다.\n";
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage() + "\n");
+            return e.getMessage() + "\n";
         }
     }
 

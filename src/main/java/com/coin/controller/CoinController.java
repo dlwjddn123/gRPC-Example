@@ -19,38 +19,38 @@ public class CoinController {
     }
 
     @GetMapping("/coin/watched-coins")
-    public void getWatchedCoinsPrice() {
-        coinService.getWatchedCoinsPrice();
+    public String getWatchedCoinsPrice() {
+        return coinService.getWatchedCoinsPrice();
     }
 
     @PostMapping("/coin/watched-coins")
-    public void addWatchedCoin(@RequestParam String coinNames) {
-        coinService.addWatchedCoin(coinNames);
+    public String addWatchedCoin(@RequestParam String coinNames) {
+        return coinService.addWatchedCoin(coinNames);
     }
 
     @DeleteMapping("/coin/watched-coins")
-    public void deleteWatchedCoin(@RequestParam String coinNames) {
-        coinService.deleteWatchedCoin(coinNames);
+    public String deleteWatchedCoin(@RequestParam String coinNames) {
+        return coinService.deleteWatchedCoin(coinNames);
     }
 
     @PostMapping("/coin/purchase")
-    public void purchaseCoin(@RequestParam String coinName, @RequestParam int count) {
-        coinTradeService.purchaseCoin(coinName, count);
+    public String purchaseCoin(@RequestParam String coinName, @RequestParam int count) {
+        return coinTradeService.purchaseCoin(coinName, count);
     }
 
     @PostMapping("/coin/sell")
-    public void sellCoin(@RequestParam String coinName, @RequestParam int count) {
-        coinTradeService.sellCoin(coinName, count);
+    public String sellCoin(@RequestParam String coinName, @RequestParam int count) {
+        return coinTradeService.sellCoin(coinName, count);
     }
 
     @GetMapping("/holdings")
-    public void getHoldings() {
-        coinTradeService.getHoldings();
+    public String getHoldings() {
+        return coinTradeService.getHoldings();
     }
 
     @GetMapping("/trade-history")
-    public void getTradeHistory() {
-        coinTradeService.getTradeHistory();
+    public String getTradeHistory() {
+        return coinTradeService.getTradeHistory();
     }
 
 }

@@ -27,7 +27,7 @@ public class CoinTradeService {
     private final CoinRepository coinRepository;
     private final TradeHistoryRepository tradeHistoryRepository;
 
-    public void purchaseCoin(String coinName, int count) {
+    public String purchaseCoin(String coinName, int count) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
                     () -> new IllegalArgumentException("로그인이 필요합니다."));
@@ -43,16 +43,16 @@ public class CoinTradeService {
                         .tradePrice(tradePrice)
                         .member(member)
                         .build());
-                return;
+                return "정상적으로 구매되었습니다.\n";
             }
             purchasedCoin.get().purchaseCoin(tradePrice, count);
-            System.out.println("정상적으로 구매되었습니다.\n");
+            return "정상적으로 구매되었습니다.\n";
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            return e.getMessage();
         }
     }
 
-    public void sellCoin(String coinName, int count) {
+    public String sellCoin(String coinName, int count) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
                     () -> new IllegalArgumentException("로그인이 필요합니다."));
@@ -67,12 +67,12 @@ public class CoinTradeService {
             if (purchasedCoin.getCount() == count) {
                 tradeHistoryRepository.save(new TradeHistory(coin.getName(), (int) purchasedCoin.getProfitAndLoss(tradePrice), member));
                 purchasedCoinRepository.delete(purchasedCoin);
-                return;
+                return "정상적으로 판매되었습니다.\n";
             }
-            System.out.println("정상적으로 판매되었습니다.\n");
             purchasedCoin.sellCoin(tradePrice, count);
+            return "정상적으로 판매되었습니다.\n";
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage() + "\n");
+            return e.getMessage() + "\n";
         }
     }
 
@@ -96,49 +96,50 @@ public class CoinTradeService {
     }
 
     @Transactional(readOnly = true)
-    public void getHoldings() {
+    public String getHoldings() {
         try {
             Member member = memberRepository.findByLoginIdFetchPurchasedCoins(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
                     () -> new IllegalArgumentException("로그인이 필요합니다."));
             List<PurchasedCoin> purchasedCoins = member.getPurchasedCoins();
+            StringBuilder resultBuilder = new StringBuilder();
             if (purchasedCoins.isEmpty()) {
-                System.out.println("보유하고 계신 코인이 없습니다.");
-                return;
+                return "보유하고 계신 코인이 없습니다.\n";
             }
             DecimalFormat df = new DecimalFormat("###,###");
-            System.out.println("▶▶▶▶▶▶▶▶▶▶ 보유 자산 ◀◀◀◀◀◀◀◀◀◀\n");
+            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 보유 자산 ◀◀◀◀◀◀◀◀◀◀\\n\"");
             for (PurchasedCoin purchasedCoin : purchasedCoins) {
                 Double tradePrice = getTradePrice(purchasedCoin.getCode());
-                System.out.println(purchasedCoin.getName());
-                System.out.println("총 매수 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getTotalAmount())) + "원");
-                System.out.println("평단가 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAveragePrice())) + "원");
-                System.out.println("현재가 : " + df.format(BigInteger.valueOf(tradePrice.longValue())) + "원");
-                System.out.println("평가 손익 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getProfitAndLoss(tradePrice))));
-                System.out.println("수익률 : " + String.format("%.2f", purchasedCoin.getProfit(tradePrice)) + "%");
-                System.out.println();
+                resultBuilder.append(purchasedCoin.getName() + "\n");
+                resultBuilder.append("총 매수 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getTotalAmount())) + "원\n");
+                resultBuilder.append("평단가 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAveragePrice())) + "원\n");
+                resultBuilder.append("현재가 : " + df.format(BigInteger.valueOf(tradePrice.longValue())) + "원\n");
+                resultBuilder.append("평가 손익 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getProfitAndLoss(tradePrice))) + "\n");
+                resultBuilder.append("수익률 : " + String.format("%.2f", purchasedCoin.getProfit(tradePrice)) + "%\n");
             }
-            System.out.println("\n-----------------------------\n");
+            resultBuilder.append("-----------------------------\n");
+            return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            return e.getMessage();
         }
     }
 
     @Transactional(readOnly = true)
-    public void getTradeHistory() {
+    public String getTradeHistory() {
         try {
             Member member = memberRepository.findByLoginIdFetchTradeHistory(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
                     () -> new IllegalArgumentException("로그인이 필요합니다."));
             List<TradeHistory> tradeHistories = member.getTradeHistories();
+            StringBuilder resultBuilder = new StringBuilder();
             DecimalFormat df = new DecimalFormat("###,###");
-            System.out.println("▶▶▶▶▶▶▶▶▶▶ 거래 내역 ◀◀◀◀◀◀◀◀◀◀\n");
+            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 거래 내역 ◀◀◀◀◀◀◀◀◀◀\n\n");
             for (TradeHistory tradeHistory : tradeHistories) {
-                System.out.println(tradeHistory.getCoinName());
-                System.out.println("실현 손익 : " + df.format(tradeHistory.getRealizedProfitAndLoss()));
-                System.out.println();
+                resultBuilder.append(tradeHistory.getCoinName() + "\n");
+                resultBuilder.append("실현 손익 : " + df.format(tradeHistory.getRealizedProfitAndLoss()) + "\n\n");
             }
-            System.out.println("\n-----------------------------\n");
+            resultBuilder.append("-----------------------------\n");
+            return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            return e.getMessage();
         }
     }
 }
