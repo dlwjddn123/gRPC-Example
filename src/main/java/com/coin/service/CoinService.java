@@ -58,7 +58,7 @@ public class CoinService {
         }
     }
 
-    public void getAllCoinsTradePrice() {
+    public String getAllCoinsTradePrice() {
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
                 .build();
@@ -73,13 +73,18 @@ public class CoinService {
                 .setNames(names.toString())
                 .build());
 
-        System.out.println("▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀ \n");
+        StringBuilder resultBuilder = new StringBuilder();
+        resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀ \n\n");
+//        System.out.println("▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀ \n");
         List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").split(", "));
         for (String coinPrice : coinPrices) {
-            System.out.println(coinPrice);
+//            System.out.println(coinPrice);
+            resultBuilder.append(coinPrice).append("\n");
         }
-        System.out.println("-----------------------------------\n");
+        resultBuilder.append("-----------------------------------\n\n");
+//        System.out.println("-----------------------------------\n");
         channel.shutdown();
+        return resultBuilder.toString();
     }
 
     public void getWatchedCoinsPrice() {

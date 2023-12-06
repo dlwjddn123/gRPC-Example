@@ -14,8 +14,8 @@ public class CoinController {
     private final CoinTradeService coinTradeService;
 
     @GetMapping("/coin/trade-price")
-    public void getAllCoinsTradePrice() {
-        coinService.getAllCoinsTradePrice();
+    public String getAllCoinsTradePrice() {
+        return coinService.getAllCoinsTradePrice();
     }
 
     @GetMapping("/coin/watched-coins")
