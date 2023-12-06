@@ -1,4 +1,4 @@
-package com.coin;
+package com.coin.service;
 
 
 import com.coin.domain.Member;

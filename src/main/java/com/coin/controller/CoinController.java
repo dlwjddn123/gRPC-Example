@@ -1,5 +1,6 @@
-package com.coin;
+package com.coin.controller;
 
+import com.coin.service.CoinService;
 import com.coin.auth.SecurityUtils;
 import com.coin.domain.Member;
 import com.coin.repository.MemberRepository;
