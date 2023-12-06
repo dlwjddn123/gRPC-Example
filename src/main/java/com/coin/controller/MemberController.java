@@ -12,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 @RestController
@@ -37,6 +39,12 @@ public class MemberController {
         return "로그인 성공";
     }
 
+    @GetMapping("/getSessionId")
+    public String getSessionId(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        return session.getId();
+    }
+
     @PutMapping("/member/modify")
     @Transactional
     public String modify(@RequestParam String nickname, @RequestParam String accountName) {
@@ -60,4 +68,5 @@ public class MemberController {
         currentMember.changePassword(bCryptPasswordEncoder.encode(password));
         return "비밀번호가 수정 완료되었습니다.";
     }
+
 }
