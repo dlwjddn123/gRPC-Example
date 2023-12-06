@@ -1,65 +1,56 @@
 package com.coin.controller;
 
 import com.coin.service.CoinService;
-import com.coin.auth.SecurityUtils;
-import com.coin.domain.Member;
-import com.coin.repository.MemberRepository;
+import com.coin.service.CoinTradeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 public class CoinController {
 
     private final CoinService coinService;
-    private final MemberRepository memberRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final CoinTradeService coinTradeService;
 
-    @PostMapping("/join")
-    public void join(@RequestParam String nickname, @RequestParam String password,
-                     @RequestParam String loginId, @RequestParam String accountName) {
-        coinService.join(loginId, nickname, accountName, password);
+    @GetMapping("/coin/trade-price")
+    public void getAllCoinsTradePrice() {
+        coinService.getAllCoinsTradePrice();
     }
 
-    @PostMapping("/signin")
-    public void join(@RequestParam String loginId, @RequestParam String password) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(loginId, password);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        System.out.println("로그인 성공");
+    @GetMapping("/coin/watched-coins")
+    public void getWatchedCoinsPrice() {
+        coinService.getWatchedCoinsPrice();
     }
 
-    @PutMapping("/member/modify")
-    @Transactional
-    public void modify(@RequestParam String nickname, @RequestParam String accountName) {
-        Optional<Member> member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId());
-        if (member.isEmpty()) {
-            System.out.println("로그인이 필요합니다.");
-            return;
-        }
-        Member currentMember = member.get();
-        currentMember.modify(nickname, accountName);
-        System.out.println("회원 정보가 수정 완료되었습니다.");
+    @PostMapping("/coin/watched-coins")
+    public void addWatchedCoin(@RequestParam String coinNames) {
+        coinService.addWatchedCoin(coinNames);
     }
 
-    @PatchMapping("/member/change-password")
-    @Transactional
-    public void changePassword(@RequestParam String password) {
-        Optional<Member> member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId());
-        if (member.isEmpty()) {
-            System.out.println("로그인이 필요합니다.");
-            return;
-        }
-        Member currentMember = member.get();
-        currentMember.changePassword(bCryptPasswordEncoder.encode(password));
-        System.out.println("비밀번호가 수정 완료되었습니다.");
+    @DeleteMapping("/coin/watched-coins")
+    public void deleteWatchedCoin(@RequestParam String coinNames) {
+        coinService.deleteWatchedCoin(coinNames);
     }
+
+    @PostMapping("/coin/purchase")
+    public void purchaseCoin(@RequestParam String coinName, @RequestParam int count) {
+        coinTradeService.purchaseCoin(coinName, count);
+    }
+
+    @PostMapping("/coin/sell")
+    public void sellCoin(@RequestParam String coinName, @RequestParam int count) {
+        coinTradeService.sellCoin(coinName, count);
+    }
+
+    @GetMapping("/holdings")
+    public void getHoldings() {
+        coinTradeService.getHoldings();
+    }
+
+    @GetMapping("/trade-history")
+    public void getTradeHistory() {
+        coinTradeService.getTradeHistory();
+    }
+
 }

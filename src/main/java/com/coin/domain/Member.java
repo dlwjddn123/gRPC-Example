@@ -48,6 +48,9 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<PurchasedCoin> purchasedCoins = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<TradeHistory> tradeHistories = new ArrayList<>();
+
     @Builder
     public Member(String loginId, String nickname, Account account, String password) {
         this.loginId = loginId;
