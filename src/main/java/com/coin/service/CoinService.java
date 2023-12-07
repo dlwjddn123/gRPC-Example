@@ -80,7 +80,7 @@ public class CoinService {
                 .build());
 
         StringBuilder resultBuilder = new StringBuilder();
-        resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀");
+        resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n");
         List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").split(", "));
         for (String coinPrice : coinPrices) {
             resultBuilder.append(coinPrice).append(" KRW\n");
