@@ -106,17 +106,19 @@ public class CoinTradeService {
                 return "보유하고 계신 코인이 없습니다.\n";
             }
             DecimalFormat df = new DecimalFormat("###,###");
-            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 보유 자산 ◀◀◀◀◀◀◀◀◀◀\\n\"");
+            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 보유 자산 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
+            resultBuilder.append("----------------------------------------------------------------------------\n\n");
             for (PurchasedCoin purchasedCoin : purchasedCoins) {
                 Double tradePrice = getTradePrice(purchasedCoin.getCode());
-                resultBuilder.append(purchasedCoin.getName() + "\n");
-                resultBuilder.append("총 매수 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getTotalAmount())) + "원\n");
-                resultBuilder.append("평단가 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAveragePrice())) + "원\n");
-                resultBuilder.append("현재가 : " + df.format(BigInteger.valueOf(tradePrice.longValue())) + "원\n");
-                resultBuilder.append("평가 손익 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getProfitAndLoss(tradePrice))) + "\n");
-                resultBuilder.append("수익률 : " + String.format("%.2f", purchasedCoin.getProfit(tradePrice)) + "%\n");
+                resultBuilder.append(purchasedCoin.getName() + "\n\n");
+                resultBuilder.append("총 매수 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getTotalAmount())) + " KRW\n");
+                resultBuilder.append("총 평가 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAssessmentAmount(tradePrice))) + " KRW\n");
+                resultBuilder.append("매수 평균가 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAveragePrice())) + " KRW\n");
+                resultBuilder.append("현재가 : " + df.format(BigInteger.valueOf(tradePrice.longValue())) + " KRW\n");
+                resultBuilder.append("평가 손익 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getProfitAndLoss(tradePrice))) + " KRW\n");
+                resultBuilder.append("수익률 : " + String.format("%.2f", purchasedCoin.getProfit(tradePrice)) + "%\n\n");
+                resultBuilder.append("----------------------------------------------------------------------------\n\n");
             }
-            resultBuilder.append("-----------------------------\n");
             return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
             return e.getMessage();
@@ -131,12 +133,13 @@ public class CoinTradeService {
             List<TradeHistory> tradeHistories = member.getTradeHistories();
             StringBuilder resultBuilder = new StringBuilder();
             DecimalFormat df = new DecimalFormat("###,###");
-            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 거래 내역 ◀◀◀◀◀◀◀◀◀◀\n\n");
+            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 거래 내역 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
+            resultBuilder.append("----------------------------------------------------------------------------\n\n");
             for (TradeHistory tradeHistory : tradeHistories) {
                 resultBuilder.append(tradeHistory.getCoinName() + "\n");
                 resultBuilder.append("실현 손익 : " + df.format(tradeHistory.getRealizedProfitAndLoss()) + "\n\n");
+                resultBuilder.append("----------------------------------------------------------------------------\n\n");
             }
-            resultBuilder.append("-----------------------------\n");
             return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
             return e.getMessage();

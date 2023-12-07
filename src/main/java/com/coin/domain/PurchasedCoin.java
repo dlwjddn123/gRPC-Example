@@ -60,4 +60,9 @@ public class PurchasedCoin {
     public double getAveragePrice() {
         return totalAmount / count;
     }
+
+    public double getAssessmentAmount(double tradePrice) {
+        return tradePrice * count;
+    }
+
 }

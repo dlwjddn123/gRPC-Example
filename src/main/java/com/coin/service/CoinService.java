@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -52,7 +53,10 @@ public class CoinService {
             for (String coinName : coinNames.split(", ")) {
                 Coin coin = coinRepository.findByName(coinName).orElseThrow(
                         () -> new IllegalArgumentException("존재하지 않는 코인입니다."));
-                watchedCoinRepository.save(new WatchedCoin(coin.getCode(), coin.getName(), member));
+                Optional<WatchedCoin> alreadyExist = watchedCoinRepository.findByName(coin.getName());
+                if (alreadyExist.isEmpty()) {
+                    watchedCoinRepository.save(new WatchedCoin(coin.getCode(), coin.getName(), member));
+                }
             }
             return coinNames + "이/가 관심 목록에 추가되었습니다.";
         } catch (IllegalArgumentException e) {
@@ -76,15 +80,12 @@ public class CoinService {
                 .build());
 
         StringBuilder resultBuilder = new StringBuilder();
-        resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀ \n\n");
-//        System.out.println("▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀ \n");
+        resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀");
         List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").split(", "));
         for (String coinPrice : coinPrices) {
-//            System.out.println(coinPrice);
-            resultBuilder.append(coinPrice).append("\n");
+            resultBuilder.append(coinPrice).append(" KRW\n");
         }
-        resultBuilder.append("-----------------------------------\n\n");
-//        System.out.println("-----------------------------------\n");
+        resultBuilder.append("----------------------------------------------------------------------------\n\n");
         channel.shutdown();
         System.out.println(resultBuilder.toString());
         return resultBuilder.toString();
@@ -99,6 +100,9 @@ public class CoinService {
                     .usePlaintext()
                     .build();
             List<WatchedCoin> coins = watchedCoinRepository.findByMember(member);
+            if (coins.isEmpty()) {
+                return "관심 코인이 없습니다.\n";
+            }
             List<String> codes = coins.stream().map(c -> c.getCode()).collect(Collectors.toList());
             List<String> names = coins.stream().map(c -> c.getName()).collect(Collectors.toList());
 
@@ -110,12 +114,12 @@ public class CoinService {
                     .build());
 
             StringBuilder resultBuilder = new StringBuilder();
-            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶ 관심 종목 현재가 ◀◀◀◀◀◀◀◀◀◀ \n\n");
+            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 관심 종목 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
             List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").split(", "));
             for (String coinPrice : coinPrices) {
-                resultBuilder.append(coinPrice).append("\n");
+                resultBuilder.append(coinPrice).append(" KRW\n");
             }
-            resultBuilder.append("-----------------------------------\n");
+            resultBuilder.append("----------------------------------------------------------------------------\n\n");
             channel.shutdown();
             return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
@@ -133,7 +137,7 @@ public class CoinService {
                         () -> new IllegalArgumentException("관심 종목에 없는 코인입니다."));
                 watchedCoinRepository.delete(watchedCoin);
             }
-            return coinNames + "이/가 관심 목록에서 삭제되었습니다.\n";
+            return coinNames + "(이/가) 관심 목록에서 삭제되었습니다.\n";
         } catch (IllegalArgumentException e) {
             return e.getMessage() + "\n";
         }
