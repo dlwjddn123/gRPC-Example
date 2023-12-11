@@ -87,8 +87,8 @@ public class CoinService {
         resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n");
         resultBuilder.append("                                          현재가        전일 대비     거래 대금\n");
 
-        List<Double> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
-                .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+        List<Integer> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(p -> Integer.parseInt(p)).collect(Collectors.toList());
         List<Double> changeRates = List.of(response.getChangeRates().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
                 .stream().map(r -> Double.parseDouble(r)).collect(Collectors.toList());
         List<Double> totalTradePrices = List.of(response.getTotalTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
@@ -97,7 +97,7 @@ public class CoinService {
 
         for (int i = 0; i < tradePrices.size(); i++) {
             CryptoInfo cryptoInfo = new CryptoInfo(names.get(i) + " (" + codes.get(i) + ") : " + df.format(tradePrices.get(i)) + " KRW  " + df.format(changeRates.get(i) * 100) + "%  "
-                    + df.format(totalTradePrices.get(i) / 1000000) + " 백만");
+                    + df.format(BigInteger.valueOf((long) (totalTradePrices.get(i) / 1000000))) + " 백만");
             resultBuilder.append(cryptoInfo).append("\n");
         }
         resultBuilder.append("----------------------------------------------------------------------------\n\n");

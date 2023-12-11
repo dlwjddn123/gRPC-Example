@@ -49,8 +49,6 @@ public class DataLoader implements ApplicationRunner {
         coinRepository.save(new Coin("KRW-SXP", "솔라"));
         coinRepository.save(new Coin("KRW-LOOM", "룸네트워크"));
         coinRepository.save(new Coin("KRW-AVAX", "아발란체"));
-        coinRepository.save(new Coin("KRW-XEC", "이캐시"));
-        coinRepository.save(new Coin("KRW-BTT", "비트토렌트"));
         coinRepository.save(new Coin("KRW-ARB", "아비트럼"));
         coinRepository.save(new Coin("KRW-MVL", "엠블"));
         coinRepository.save(new Coin("KRW-IMX", "이뮤터블엑스"));
@@ -70,7 +68,6 @@ public class DataLoader implements ApplicationRunner {
         coinRepository.save(new Coin("KRW-ALGO", "알고랜드"));
         coinRepository.save(new Coin("KRW-APT", "앱토스"));
         coinRepository.save(new Coin("KRW-BSV", "비트코인에스브이"));
-        coinRepository.save(new Coin("KRW-SHIB", "시바이누"));
         coinRepository.save(new Coin("KRW-1INCH", "1인치네트워크"));
         coinRepository.save(new Coin("KRW-STRAX", "스트라티스"));
         coinRepository.save(new Coin("KRW-DOT", "폴카닷"));
