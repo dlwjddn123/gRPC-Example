@@ -85,6 +85,8 @@ public class CoinService {
 
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n");
+        resultBuilder.append("                                          현재가        전일 대비     거래 대금\n");
+
         List<Double> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
                 .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
         List<Double> changeRates = List.of(response.getChangeRates().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
