@@ -14,5 +14,9 @@ message GetCoinTradePriceRequest {
 }
 
 message GetCoinTradePriceResponse {
-  string result = 1;
+  string codes = 1;
+  string names = 2;
+  string tradePrices = 3;
+  string changeRates = 4;
+  string totalTradePrices = 5;
 }

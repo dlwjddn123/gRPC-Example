@@ -69,4 +69,18 @@ public class MemberController {
         return "비밀번호가 수정 완료되었습니다.";
     }
 
+    @GetMapping("/member")
+    public String getProfile() {
+        Optional<Member> member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId());
+        if (member.isEmpty()) {
+            return "로그인이 필요합니다.";
+        }
+        StringBuilder result = new StringBuilder();
+        result.append("------------------------------------------------------\n\n");
+        result.append("닉네임 : " + member.get().getNickname() + "\n");
+        result.append("계좌 정보 : " + member.get().getAccount().toString() + "\n\n");
+        result.append("------------------------------------------------------\n\n");
+        return result.toString();
+    }
+
 }

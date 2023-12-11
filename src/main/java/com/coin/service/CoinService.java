@@ -2,6 +2,7 @@ package com.coin.service;
 
 
 import com.coin.CoinServiceGrpc;
+import com.coin.CryptoInfo;
 import com.coin.GetCoinTradePriceRequest;
 import com.coin.GetCoinTradePriceResponse;
 import com.coin.auth.SecurityUtils;
@@ -18,6 +19,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,13 +85,61 @@ public class CoinService {
 
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n");
-        List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").split(", "));
-        for (String coinPrice : coinPrices) {
-            resultBuilder.append(coinPrice).append(" KRW\n");
+        List<Double> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+        List<Double> changeRates = List.of(response.getChangeRates().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(r -> Double.parseDouble(r)).collect(Collectors.toList());
+        List<Double> totalTradePrices = List.of(response.getTotalTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+        DecimalFormat df = new DecimalFormat("###,###.##");
+
+        for (int i = 0; i < tradePrices.size(); i++) {
+            CryptoInfo cryptoInfo = new CryptoInfo(names.get(i) + " (" + codes.get(i) + ") : " + df.format(tradePrices.get(i)) + " KRW  " + df.format(changeRates.get(i) * 100) + "%  "
+                    + df.format(totalTradePrices.get(i) / 1000000) + " 백만");
+            resultBuilder.append(cryptoInfo).append("\n");
         }
         resultBuilder.append("----------------------------------------------------------------------------\n\n");
         channel.shutdown();
-        System.out.println(resultBuilder.toString());
+        return resultBuilder.toString();
+    }
+
+    public String getSearchCoinsTradePrice(String coinNames) {
+        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
+                .usePlaintext()
+                .build();
+        List<Coin> coins = new ArrayList<>();
+        for (String coinName : coinNames.split(",")) {
+            Optional<Coin> coin = coinRepository.findByName(coinName);
+            if (coin.isEmpty()) return "존재하지 않는 코인입니다.\n";
+            coins.add(coin.get());
+        }
+        List<String> codes = coins.stream().map(c -> c.getCode()).collect(Collectors.toList());
+        List<String> names = coins.stream().map(c -> c.getName()).collect(Collectors.toList());
+
+        CoinServiceGrpc.CoinServiceBlockingStub stub = CoinServiceGrpc.newBlockingStub(channel);
+
+        GetCoinTradePriceResponse response = stub.getCoinTradePrice(GetCoinTradePriceRequest.newBuilder()
+                .setCodes(codes.toString())
+                .setNames(names.toString())
+                .build());
+
+        StringBuilder resultBuilder = new StringBuilder();
+        resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 검색한 종목의 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n");
+        List<Double> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+        List<Double> changeRates = List.of(response.getChangeRates().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(r -> Double.parseDouble(r)).collect(Collectors.toList());
+        List<Double> totalTradePrices = List.of(response.getTotalTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+        DecimalFormat df = new DecimalFormat("###,###.##");
+
+        for (int i = 0; i < tradePrices.size(); i++) {
+            CryptoInfo cryptoInfo = new CryptoInfo(names.get(i) + " (" + codes.get(i) + ") : " + df.format(tradePrices.get(i)) + " KRW  " + df.format(changeRates.get(i) * 100) + "%  "
+                    + df.format(totalTradePrices.get(i) / 1000000) + " 백만");
+            resultBuilder.append(cryptoInfo).append("\n");
+        }
+        resultBuilder.append("----------------------------------------------------------------------------\n\n");
+        channel.shutdown();
         return resultBuilder.toString();
     }
 
@@ -115,9 +167,18 @@ public class CoinService {
 
             StringBuilder resultBuilder = new StringBuilder();
             resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 관심 종목 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
-            List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").split(", "));
-            for (String coinPrice : coinPrices) {
-                resultBuilder.append(coinPrice).append(" KRW\n");
+            List<Double> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                    .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+            List<Double> changeRates = List.of(response.getChangeRates().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                    .stream().map(r -> Double.parseDouble(r)).collect(Collectors.toList());
+            List<Double> totalTradePrices = List.of(response.getTotalTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                    .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+            DecimalFormat df = new DecimalFormat("###,###.##");
+
+            for (int i = 0; i < tradePrices.size(); i++) {
+                CryptoInfo cryptoInfo = new CryptoInfo(names.get(i) + " (" + codes.get(i) + ") : " + df.format(tradePrices.get(i)) + " KRW  " + df.format(changeRates.get(i) * 100) + "%  "
+                        + df.format(totalTradePrices.get(i) / 1000000) + " 백만");
+                resultBuilder.append(cryptoInfo).append("\n");
             }
             resultBuilder.append("----------------------------------------------------------------------------\n\n");
             channel.shutdown();

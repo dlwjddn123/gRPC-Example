@@ -53,4 +53,9 @@ public class CoinController {
         return coinTradeService.getTradeHistory();
     }
 
+    @GetMapping("/coin/trade-price/search")
+    public String getSearchCoinsPrice(@RequestParam String coinNames) {
+        return coinService.getSearchCoinsTradePrice(coinNames);
+    }
+
 }

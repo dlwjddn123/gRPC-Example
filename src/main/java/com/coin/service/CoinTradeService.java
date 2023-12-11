@@ -88,7 +88,7 @@ public class CoinTradeService {
                 .setCodes(code)
                 .build());
 
-        List<String> coinPrices = List.of(response.getResult().replace("[", "").replace("]", "").replaceAll("'", "").replace("원", ""));
+        List<String> coinPrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").replace("원", ""));
         String[] split = coinPrices.get(0).split(":");
 
         channel.shutdown();
@@ -108,17 +108,29 @@ public class CoinTradeService {
             DecimalFormat df = new DecimalFormat("###,###");
             resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 보유 자산 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
             resultBuilder.append("----------------------------------------------------------------------------\n\n");
+            double totalPurchasePrice = 0;
+            double totalAssessmentPrice = 0;
+            double totalProfitAndLoss = 0;
             for (PurchasedCoin purchasedCoin : purchasedCoins) {
                 Double tradePrice = getTradePrice(purchasedCoin.getCode());
                 resultBuilder.append(purchasedCoin.getName() + "\n\n");
-                resultBuilder.append("총 매수 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getTotalAmount())) + " KRW\n");
-                resultBuilder.append("총 평가 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAssessmentAmount(tradePrice))) + " KRW\n");
+                resultBuilder.append("매수 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getTotalAmount())) + " KRW\n");
+                resultBuilder.append("평가 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAssessmentAmount(tradePrice))) + " KRW\n");
                 resultBuilder.append("매수 평균가 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAveragePrice())) + " KRW\n");
                 resultBuilder.append("현재가 : " + df.format(BigInteger.valueOf(tradePrice.longValue())) + " KRW\n");
                 resultBuilder.append("평가 손익 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getProfitAndLoss(tradePrice))) + " KRW\n");
                 resultBuilder.append("수익률 : " + String.format("%.2f", purchasedCoin.getProfit(tradePrice)) + "%\n\n");
                 resultBuilder.append("----------------------------------------------------------------------------\n\n");
+                totalPurchasePrice += purchasedCoin.getTotalAmount();
+                totalAssessmentPrice += purchasedCoin.getAssessmentAmount(tradePrice);
+                totalProfitAndLoss += purchasedCoin.getProfitAndLoss(tradePrice);
             }
+            double totalProfit = (totalAssessmentPrice - totalPurchasePrice) / totalPurchasePrice * 100;
+            resultBuilder.append("총 매수 금액 : " + df.format(BigInteger.valueOf((long) totalPurchasePrice)) + " KRW\n");
+            resultBuilder.append("총 평가 금액 : " + df.format(BigInteger.valueOf((long) totalAssessmentPrice)) + " KRW\n");
+            resultBuilder.append("총 평가 손익 : " + df.format(BigInteger.valueOf((long) totalProfitAndLoss)) + " KRW\n");
+            resultBuilder.append("총 수익률 : " + String.format("%.2f", totalProfit) + "%\n\n");
+            resultBuilder.append("----------------------------------------------------------------------------\n\n");
             return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
             return e.getMessage();
@@ -135,11 +147,15 @@ public class CoinTradeService {
             DecimalFormat df = new DecimalFormat("###,###");
             resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 거래 내역 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
             resultBuilder.append("----------------------------------------------------------------------------\n\n");
+            int total = 0;
             for (TradeHistory tradeHistory : tradeHistories) {
                 resultBuilder.append(tradeHistory.getCoinName() + "\n");
-                resultBuilder.append("실현 손익 : " + df.format(tradeHistory.getRealizedProfitAndLoss()) + "\n\n");
+                resultBuilder.append("실현 손익 : " + df.format(tradeHistory.getRealizedProfitAndLoss()) + " KRW\n\n");
                 resultBuilder.append("----------------------------------------------------------------------------\n\n");
+                total += tradeHistory.getRealizedProfitAndLoss();
             }
+            resultBuilder.append("총 실현 손익 : " + df.format(total) + " KRW\n\n");
+            resultBuilder.append("----------------------------------------------------------------------------\n\n");
             return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
             return e.getMessage();
