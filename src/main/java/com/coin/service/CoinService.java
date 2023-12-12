@@ -62,7 +62,7 @@ public class CoinService {
                     watchedCoinRepository.save(new WatchedCoin(coin.getCode(), coin.getName(), member));
                 }
             }
-            return coinNames + "이/가 관심 목록에 추가되었습니다.";
+            return coinNames + " (이/가) 관심 목록에 추가되었습니다.";
         } catch (IllegalArgumentException e) {
             return e.getMessage();
         }
@@ -127,8 +127,9 @@ public class CoinService {
 
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 검색한 종목의 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n");
-        List<Double> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
-                .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+        resultBuilder.append("                                          현재가        전일 대비     거래 대금\n");
+        List<Integer> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(p -> Integer.parseInt(p)).collect(Collectors.toList());
         List<Double> changeRates = List.of(response.getChangeRates().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
                 .stream().map(r -> Double.parseDouble(r)).collect(Collectors.toList());
         List<Double> totalTradePrices = List.of(response.getTotalTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
@@ -137,7 +138,7 @@ public class CoinService {
 
         for (int i = 0; i < tradePrices.size(); i++) {
             CryptoInfo cryptoInfo = new CryptoInfo(names.get(i) + " (" + codes.get(i) + ") : " + df.format(tradePrices.get(i)) + " KRW  " + df.format(changeRates.get(i) * 100) + "%  "
-                    + df.format(totalTradePrices.get(i) / 1000000) + " 백만");
+                    + df.format(BigInteger.valueOf((long) (totalTradePrices.get(i) / 1000000))) + " 백만");
             resultBuilder.append(cryptoInfo).append("\n");
         }
         resultBuilder.append("----------------------------------------------------------------------------\n\n");
@@ -168,9 +169,10 @@ public class CoinService {
                     .build());
 
             StringBuilder resultBuilder = new StringBuilder();
-            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 관심 종목 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
-            List<Double> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
-                    .stream().map(p -> Double.parseDouble(p)).collect(Collectors.toList());
+            resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 관심 종목 현재가 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n");
+            resultBuilder.append("                                          현재가        전일 대비     거래 대금\n");
+            List<Integer> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                    .stream().map(p -> Integer.parseInt(p)).collect(Collectors.toList());
             List<Double> changeRates = List.of(response.getChangeRates().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
                     .stream().map(r -> Double.parseDouble(r)).collect(Collectors.toList());
             List<Double> totalTradePrices = List.of(response.getTotalTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
@@ -179,7 +181,7 @@ public class CoinService {
 
             for (int i = 0; i < tradePrices.size(); i++) {
                 CryptoInfo cryptoInfo = new CryptoInfo(names.get(i) + " (" + codes.get(i) + ") : " + df.format(tradePrices.get(i)) + " KRW  " + df.format(changeRates.get(i) * 100) + "%  "
-                        + df.format(totalTradePrices.get(i) / 1000000) + " 백만");
+                        + df.format(BigInteger.valueOf((long) (totalTradePrices.get(i) / 1000000))) + " 백만");
                 resultBuilder.append(cryptoInfo).append("\n");
             }
             resultBuilder.append("----------------------------------------------------------------------------\n\n");
