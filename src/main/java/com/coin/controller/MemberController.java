@@ -36,7 +36,7 @@ public class MemberController {
         if (member.isEmpty()) {
             return "[ERROR] 해당 아이디는 존재하지 않습니다.";
         }
-        if (!member.get().getPassword().equals(bCryptPasswordEncoder.encode(password))) {
+        if (!bCryptPasswordEncoder.matches(password, member.get().getPassword())) {
             return "[ERROR] 비밀번호가 올바르지 않습니다";
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
