@@ -32,8 +32,12 @@ public class MemberController {
     @PostMapping("/signin")
     public String join(@RequestParam String loginId, @RequestParam String password) {
         Authentication authentication = new UsernamePasswordAuthenticationToken(loginId, password);
-        if (authentication == null) {
-            return "[ERROR] 로그인 실패";
+        Optional<Member> member = memberRepository.findByLoginId(loginId);
+        if (member.isEmpty()) {
+            return "[ERROR] 해당 아이디는 존재하지 않습니다.";
+        }
+        if (member.get().getPassword().equals(bCryptPasswordEncoder.encode(password))) {
+            return "[ERROR] 비밀번호가 올바르지 않습니다";
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return "로그인 성공";
