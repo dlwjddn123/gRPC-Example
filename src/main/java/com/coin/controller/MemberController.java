@@ -33,7 +33,7 @@ public class MemberController {
     public String join(@RequestParam String loginId, @RequestParam String password) {
         Authentication authentication = new UsernamePasswordAuthenticationToken(loginId, password);
         if (authentication == null) {
-            return "로그인 실패";
+            return "[ERROR] 로그인 실패";
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return "로그인 성공";
@@ -50,7 +50,7 @@ public class MemberController {
     public String modify(@RequestParam String nickname, @RequestParam String accountName) {
         Optional<Member> member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId());
         if (member.isEmpty()) {
-            return "로그인이 필요합니다.";
+            return "[ERROR] 로그인이 필요합니다.";
         }
         Member currentMember = member.get();
         currentMember.modify(nickname, accountName);
@@ -62,7 +62,11 @@ public class MemberController {
     public String changePassword(@RequestParam String password) {
         Optional<Member> member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId());
         if (member.isEmpty()) {
-            return "로그인이 필요합니다.";
+            return "[ERROR] 로그인이 필요합니다.";
+        }
+
+        if (password == null || password.isEmpty()) {
+            return "[ERROR] 새로운 비밀번호가 올바르지 않습니다.";
         }
         Member currentMember = member.get();
         currentMember.changePassword(bCryptPasswordEncoder.encode(password));
@@ -73,7 +77,7 @@ public class MemberController {
     public String getProfile() {
         Optional<Member> member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId());
         if (member.isEmpty()) {
-            return "로그인이 필요합니다.";
+            return "[ERROR] 로그인이 필요합니다.";
         }
         StringBuilder result = new StringBuilder();
         result.append("------------------------------------------------------\n\n");

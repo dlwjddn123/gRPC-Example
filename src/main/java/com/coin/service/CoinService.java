@@ -38,15 +38,18 @@ public class CoinService {
 
     @Transactional
     public String join(String loginId, String nickname, String accountName, String password) {
-        Member member = Member.builder()
-                .loginId(loginId)
-                .nickname(nickname)
-                .account(Member.Account.of(accountName))
-                .password(bCryptPasswordEncoder.encode(password))
-                .build();
-
-        memberRepository.save(member);
-        return "회원 가입이 완료되었습니다.\n";
+        try {
+            Member member = Member.builder()
+                    .loginId(loginId)
+                    .nickname(nickname)
+                    .account(Member.Account.of(accountName))
+                    .password(bCryptPasswordEncoder.encode(password))
+                    .build();
+            memberRepository.save(member);
+            return "회원 가입이 완료되었습니다.\n";
+        } catch (Exception e) {
+            return "[ERROR] 입력하신 가입 정보의 형태가 올바르지 않습니다.";
+        }
     }
 
     @Transactional
@@ -56,7 +59,7 @@ public class CoinService {
                     () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             for (String coinName : coinNames.split(", ")) {
                 Coin coin = coinRepository.findByName(coinName).orElseThrow(
-                        () -> new IllegalArgumentException("[ERROR] 존재하지 않는 코인입니다."));
+                        () -> new IllegalArgumentException("[ERROR] 존재하지 않는 코인이거나 입력 형태가 올바르지 않습니다."));
                 Optional<WatchedCoin> alreadyExist = watchedCoinRepository.findByName(coin.getName());
                 if (alreadyExist.isEmpty()) {
                     watchedCoinRepository.save(new WatchedCoin(coin.getCode(), coin.getName(), member));
@@ -112,7 +115,7 @@ public class CoinService {
         List<Coin> coins = new ArrayList<>();
         for (String coinName : coinNames.split(",")) {
             Optional<Coin> coin = coinRepository.findByName(coinName);
-            if (coin.isEmpty()) return "[ERROR] 존재하지 않는 코인입니다.\n";
+            if (coin.isEmpty()) return "[ERROR] 존재하지 않는 코인이거나 입력 형태가 올바르지 않습니다.\n";
             coins.add(coin.get());
         }
         List<String> codes = coins.stream().map(c -> c.getCode()).collect(Collectors.toList());
