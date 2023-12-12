@@ -57,7 +57,6 @@ public class MemberController {
             return "[ERROR] 로그인이 필요합니다.";
         }
         Member currentMember = member.get();
-        Member.Account.of(accountName);
         return currentMember.modify(nickname, accountName);
     }
 
