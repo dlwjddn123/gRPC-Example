@@ -16,6 +16,7 @@ import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -30,22 +31,34 @@ public class CoinTradeService {
     public String purchaseCoin(String coinName, int count) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
-                    () -> new IllegalArgumentException("로그인이 필요합니다."));
+                    () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             Coin coin = coinRepository.findByName(coinName).orElseThrow(
-                    () -> new IllegalArgumentException("존재하지 않는 코인입니다."));
+                    () -> new IllegalArgumentException("[ERROR] 존재하지 않는 코인입니다."));
             Optional<PurchasedCoin> purchasedCoin = purchasedCoinRepository.findByName(coinName);
-            Double tradePrice = getTradePrice(coin.getCode());
+            Integer tradePrice = getTradePrice(coin.getCode());
             if (purchasedCoin.isEmpty()) {
-                purchasedCoinRepository.save(PurchasedCoin.builder()
+                PurchasedCoin newPurchasedCoin = purchasedCoinRepository.save(PurchasedCoin.builder()
                         .code(coin.getCode())
                         .name(coin.getName())
                         .count(count)
                         .tradePrice(tradePrice)
                         .member(member)
                         .build());
+                tradeHistoryRepository.save(TradeHistory.builder()
+                        .coinName(newPurchasedCoin.getName())
+                        .type(TradeHistory.Type.PURCHASE)
+                        .tradeAmount((double) tradePrice * count)
+                        .member(member)
+                        .count(count).build());
                 return "정상적으로 구매되었습니다.\n";
             }
             purchasedCoin.get().purchaseCoin(tradePrice, count);
+            tradeHistoryRepository.save(TradeHistory.builder()
+                    .coinName(purchasedCoin.get().getName())
+                    .type(TradeHistory.Type.PURCHASE)
+                    .tradeAmount((double) tradePrice * count)
+                    .member(member)
+                    .count(count).build());
             return "정상적으로 구매되었습니다.\n";
         } catch (IllegalArgumentException e) {
             return e.getMessage();
@@ -55,20 +68,32 @@ public class CoinTradeService {
     public String sellCoin(String coinName, int count) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
-                    () -> new IllegalArgumentException("로그인이 필요합니다."));
+                    () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             Coin coin = coinRepository.findByName(coinName).orElseThrow(
-                    () -> new IllegalArgumentException("존재하지 않는 코인입니다."));
+                    () -> new IllegalArgumentException("[ERROR] 존재하지 않는 코인입니다."));
             PurchasedCoin purchasedCoin = purchasedCoinRepository.findByName(coinName).orElseThrow(
-                    () -> new IllegalArgumentException("보유하고 계신 코인이 없습니다."));
-            Double tradePrice = getTradePrice(coin.getCode());
+                    () -> new IllegalArgumentException("[ERROR] 보유하고 계신 코인이 없습니다."));
+            Integer tradePrice = getTradePrice(coin.getCode());
             if (purchasedCoin.getCount() < count) {
-                throw new IllegalArgumentException("매도할 코인의 개수가 보유한 코인의 개수보다 큽니다.");
+                throw new IllegalArgumentException("[ERROR] 매도할 코인의 개수가 보유한 코인의 개수보다 큽니다. \n" +
+                        "현재 보유한 " + purchasedCoin.getName() + "의 개수는 " + purchasedCoin.getCount() + "개 입니다.");
             }
             if (purchasedCoin.getCount() == count) {
-                tradeHistoryRepository.save(new TradeHistory(coin.getName(), (int) purchasedCoin.getProfitAndLoss(tradePrice), member));
+                tradeHistoryRepository.save(TradeHistory.builder()
+                        .coinName(purchasedCoin.getName())
+                        .type(TradeHistory.Type.SELL)
+                        .tradeAmount(purchasedCoin.getAssessmentAmount(tradePrice))
+                        .member(member)
+                        .count(count).build());
                 purchasedCoinRepository.delete(purchasedCoin);
                 return "정상적으로 판매되었습니다.\n";
             }
+            tradeHistoryRepository.save(TradeHistory.builder()
+                    .coinName(purchasedCoin.getName())
+                    .type(TradeHistory.Type.SELL)
+                    .tradeAmount(tradePrice * count)
+                    .member(member)
+                    .count(count).build());
             purchasedCoin.sellCoin(tradePrice, count);
             return "정상적으로 판매되었습니다.\n";
         } catch (IllegalArgumentException e) {
@@ -77,7 +102,7 @@ public class CoinTradeService {
     }
 
     @Transactional(readOnly = true)
-    public Double getTradePrice(String code) {
+    public Integer getTradePrice(String code) {
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
                 .build();
@@ -88,18 +113,17 @@ public class CoinTradeService {
                 .setCodes(code)
                 .build());
 
-        List<String> coinPrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").replace("원", ""));
-        String[] split = coinPrices.get(0).split(":");
-
+        List<Integer> tradePrices = List.of(response.getTradePrices().replace("[", "").replace("]", "").replaceAll("'", "").split(", "))
+                .stream().map(p -> Integer.parseInt(p)).collect(Collectors.toList());
         channel.shutdown();
-        return Double.parseDouble(split[1].trim());
+        return tradePrices.get(0);
     }
 
     @Transactional(readOnly = true)
     public String getHoldings() {
         try {
             Member member = memberRepository.findByLoginIdFetchPurchasedCoins(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
-                    () -> new IllegalArgumentException("로그인이 필요합니다."));
+                    () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             List<PurchasedCoin> purchasedCoins = member.getPurchasedCoins();
             StringBuilder resultBuilder = new StringBuilder();
             if (purchasedCoins.isEmpty()) {
@@ -112,7 +136,7 @@ public class CoinTradeService {
             double totalAssessmentPrice = 0;
             double totalProfitAndLoss = 0;
             for (PurchasedCoin purchasedCoin : purchasedCoins) {
-                Double tradePrice = getTradePrice(purchasedCoin.getCode());
+                Integer tradePrice = getTradePrice(purchasedCoin.getCode());
                 resultBuilder.append(purchasedCoin.getName() + "\n\n");
                 resultBuilder.append("매수 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getTotalAmount())) + " KRW\n");
                 resultBuilder.append("평가 금액 : " + df.format(BigInteger.valueOf((long) purchasedCoin.getAssessmentAmount(tradePrice))) + " KRW\n");
@@ -141,21 +165,19 @@ public class CoinTradeService {
     public String getTradeHistory() {
         try {
             Member member = memberRepository.findByLoginIdFetchTradeHistory(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
-                    () -> new IllegalArgumentException("로그인이 필요합니다."));
+                    () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             List<TradeHistory> tradeHistories = member.getTradeHistories();
             StringBuilder resultBuilder = new StringBuilder();
             DecimalFormat df = new DecimalFormat("###,###");
             resultBuilder.append("▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶ 거래 내역 ◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀◀\n\n");
             resultBuilder.append("----------------------------------------------------------------------------\n\n");
-            int total = 0;
             for (TradeHistory tradeHistory : tradeHistories) {
                 resultBuilder.append(tradeHistory.getCoinName() + "\n");
-                resultBuilder.append("실현 손익 : " + df.format(tradeHistory.getRealizedProfitAndLoss()) + " KRW\n\n");
+                resultBuilder.append("종류 : " + tradeHistory.getType().getValue() + "\n");
+                resultBuilder.append("체결 금액 : " + df.format(BigInteger.valueOf((long) tradeHistory.getTradeAmount())) + " KRW\n");
+                resultBuilder.append("체결 수량 : " + df.format((long) tradeHistory.getCount()) + " 개\n\n");
                 resultBuilder.append("----------------------------------------------------------------------------\n\n");
-                total += tradeHistory.getRealizedProfitAndLoss();
             }
-            resultBuilder.append("총 실현 손익 : " + df.format(total) + " KRW\n\n");
-            resultBuilder.append("----------------------------------------------------------------------------\n\n");
             return resultBuilder.toString();
         } catch (IllegalArgumentException e) {
             return e.getMessage();

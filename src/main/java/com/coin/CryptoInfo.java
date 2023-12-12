@@ -35,15 +35,6 @@ public class CryptoInfo {
         return length;
     }
 
-    private int getLength(String str)  {
-        try {
-            return str.getBytes("euc-kr").length;
-        } catch (UnsupportedEncodingException e) {
-            System.out.println(e.getMessage());
-            return 0;
-        }
-    }
-
     @Override
     public String toString() {
         int len1 = getPrintfStrLength(35, name);

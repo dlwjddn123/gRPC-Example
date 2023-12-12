@@ -53,10 +53,10 @@ public class CoinService {
     public String addWatchedCoin(String coinNames) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
-                    () -> new IllegalArgumentException("로그인이 필요합니다."));
+                    () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             for (String coinName : coinNames.split(", ")) {
                 Coin coin = coinRepository.findByName(coinName).orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 코인입니다."));
+                        () -> new IllegalArgumentException("[ERROR] 존재하지 않는 코인입니다."));
                 Optional<WatchedCoin> alreadyExist = watchedCoinRepository.findByName(coin.getName());
                 if (alreadyExist.isEmpty()) {
                     watchedCoinRepository.save(new WatchedCoin(coin.getCode(), coin.getName(), member));
@@ -112,7 +112,7 @@ public class CoinService {
         List<Coin> coins = new ArrayList<>();
         for (String coinName : coinNames.split(",")) {
             Optional<Coin> coin = coinRepository.findByName(coinName);
-            if (coin.isEmpty()) return "존재하지 않는 코인입니다.\n";
+            if (coin.isEmpty()) return "[ERROR] 존재하지 않는 코인입니다.\n";
             coins.add(coin.get());
         }
         List<String> codes = coins.stream().map(c -> c.getCode()).collect(Collectors.toList());
@@ -149,7 +149,7 @@ public class CoinService {
         Member member;
         try {
             member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
-                    () -> new IllegalArgumentException("로그인이 필요합니다."));
+                    () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                     .usePlaintext()
                     .build();
@@ -194,10 +194,10 @@ public class CoinService {
     public String deleteWatchedCoin(String coinNames) {
         try {
             Member member = memberRepository.findByLoginId(SecurityUtils.getLoggedUserLoginId()).orElseThrow(
-                    () -> new IllegalArgumentException("로그인이 필요합니다."));
+                    () -> new IllegalArgumentException("[ERROR] 로그인이 필요합니다."));
             for (String coinName : coinNames.split(", ")) {
                 WatchedCoin watchedCoin = watchedCoinRepository.findByName(coinName).orElseThrow(
-                        () -> new IllegalArgumentException("관심 종목에 없는 코인입니다."));
+                        () -> new IllegalArgumentException("[ERROR] 관심 종목에 없는 코인입니다."));
                 watchedCoinRepository.delete(watchedCoin);
             }
             return coinNames + "(이/가) 관심 목록에서 삭제되었습니다.\n";
