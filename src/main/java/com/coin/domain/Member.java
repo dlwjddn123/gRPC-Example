@@ -27,7 +27,7 @@ public class Member {
             return Arrays.stream(Account.values())
                     .filter(v -> v.name.equals(name))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("토스, 카카오, 케이뱅크로만 계좌 등록이 가능합니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("[ERROR] 토스, 카카오, 케이뱅크로만 계좌 등록이 가능합니다."));
         }
     }
 
@@ -63,13 +63,14 @@ public class Member {
         this.password = password;
     }
 
-    public void modify(String nickname, String accountName) {
+    public String modify(String nickname, String accountName) {
         this.nickname = nickname;
         try {
             Account.of(accountName);
             this.account = Account.of(accountName);
+            return "회원 정보가 수정되었습니다.";
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            return e.getMessage();
         }
     }
 }

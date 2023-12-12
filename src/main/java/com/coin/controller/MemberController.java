@@ -57,8 +57,8 @@ public class MemberController {
             return "[ERROR] 로그인이 필요합니다.";
         }
         Member currentMember = member.get();
-        currentMember.modify(nickname, accountName);
-        return "회원 정보가 수정 완료되었습니다.";
+        Member.Account.of(accountName);
+        return currentMember.modify(nickname, accountName);
     }
 
     @PatchMapping("/member/change-password")
